@@ -1,0 +1,17 @@
+name: FarmFrame
+version: '1.9.0'
+main: com.liverecord.farmframe.FarmFramePlugin
+api-version: '1.21'
+author: LiveRecord
+description: 's2e-farm-pro のアリーナを1マス外側で囲う農業デザインの枠（柵）を生成する'
+softdepend: [s2e-farm-pro]
+commands:
+  farmfence:
+    description: '農場アリーナを囲う枠を生成/撤去'
+    usage: '/farmfence <1-11|list|clear|reload>'
+    permission: farmfence.use
+    aliases: [ffence, farmwaku]
+permissions:
+  farmfence.use:
+    description: 'farmfence の操作権限'
+    default: op

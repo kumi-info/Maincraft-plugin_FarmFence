@@ -1,0 +1,156 @@
+# ===================== FarmFrame（農場わく）設定 =====================
+# s2e-farm-pro のアリーナ（フロア）設定を読み取り、その「1マス外側」を
+# 1マス幅で囲う、農業デザインの枠（柵マスト）を生成するプラグイン。
+#
+# コマンド: /farmframe <1-3|list|clear|reload>
+#   番号  … 下の styles の番号でデザインを生成
+#   list  … スタイル一覧
+#   clear … 枠を撤去（外周リングを空気に戻す）
+#   reload… この config.yml を再読み込み
+#
+# アリーナ座標・サイズは plugins/s2e-farm-pro/config.yml の
+#   arena.location.{world_key,x,y,z} と arena.{sizeX,sizeZ} から自動取得。
+# ====================================================================
+
+# 対象（フロア設定を読むプラグイン）。
+source-plugin: s2e-farm-pro
+
+# ワールド。空なら source の world_key（overworld）= 環境 NORMAL を自動選択。
+# 別ワールドに枠を出したいときだけワールド名を指定。
+world: ""
+
+arena:
+  # location が示す座標の解釈:
+  #   center … location をアリーナ中心とみなす（既定。farm は /farm create 実行地点が中心）
+  #   corner … location をアリーナの角（最小X/Z）とみなす
+  # ※ 枠が床とズレる場合は、ここを切り替えるか center-x/z-offset を調整して /farmframe reload。
+  anchor: center
+  # 自動取得した中心/角を微調整するオフセット（ズレたら +/- して /farmframe reload）。
+  center-x-offset: 0
+  center-z-offset: 0
+  # 中心モード(anchor: center)では sizeX/sizeZ を「中心からの半径」として扱う。
+  #   アリーナ = 中心 ± round(sizeX * size-scale)。例 sizeX=15, scale=1.0 → 中心±15 = 31×31（対称）。
+  #   farm の location は中央値・sizeX=15 は半径なので size-scale は 1.0 が正しい（旧 2.0 はズレの原因）。
+  size-scale: 1.0
+  # 半径にさらに加える余白ブロック数（±で微調整）。
+  size-padding: 0
+
+# 枠（外周リング）を破壊から保護する。アリーナ内部や他の場所は通常どおり。
+#   explosion … TNT・クリーパー等の爆発
+#   fire      … 引火・燃焼（落雷による着火も含む。干し草/木の柵が燃えるのを防ぐ）
+#   break     … プレイヤーの手壊し・エンダーマン等によるブロック変化
+# すべて true で「どんな攻撃にも枠が消えない」状態になる。
+protect:
+  explosion: true
+  fire: true
+  break: true
+
+# /farm delete を検知したとき、枠も一緒に撤去するか。
+clear-on-farm-delete: true
+
+# アリーナのサイズ/位置が変わったら、枠を自動で作り直す/自動生成する。
+#   enabled         … true で自動追従
+#   interval-seconds … 何秒ごとに farm 設定を確認するか（小さいほど早く反映）
+#   auto-build      … true なら「枠が無くても」/farm create 等のアリーナ検知で自動生成する
+#   style           … 自動生成に使うスタイル番号(1-11)。直前に建てたスタイルがあればそちら優先。
+auto-follow:
+  enabled: true
+  interval-seconds: 2
+  auto-build: true
+  style: 1
+
+frame:
+  # アリーナからの隙間（マス）。1 = アリーナのちょうど1マス外側（全辺の既定値）。
+  gap: 1
+  # 辺ごとに外側マス数を個別指定（省略時は gap）。特定の2辺だけ後ろへ広げたい時に使う。
+  #   gap-north … -Z 側 / gap-south … +Z 側 / gap-east … +X 側 / gap-west … -X 側
+  #   （F3 の向きで Z- が北。例: 奥の2辺を1マス広げるなら該当2つを 2 にする）
+  gap-north: 1
+  gap-south: 1
+  gap-east: 1
+  gap-west: 1
+  # 枠の基準 Y を arena.y からずらすオフセット（0=フロアと同じ高さ）。
+  base-y-offset: 0
+  # 角に柱を立てる。
+  corner:
+    enabled: true
+    post-height: 2
+  # 柵の上に一定間隔で明かりを置く。spacing=0 で無効。
+  light:
+    enabled: true
+    spacing: 4
+
+# ===== 農業デザイン（スタイル）。/farmframe <番号> で選択 =====
+#   base  : 外周リングの土台ブロック
+#   fence : 土台の上に立てる柵（マスト）
+#   post  : 角の柱ブロック
+#   top   : 角の柱の上に乗せる飾り
+#   light : 柵の上に一定間隔で乗せる明かり
+styles:
+  - name: "木の牧場"
+    base: HAY_BLOCK
+    fence: OAK_FENCE
+    post: OAK_LOG
+    top: LANTERN
+    light: LANTERN
+  - name: "白樺ガーデン"
+    base: DIRT_PATH
+    fence: BIRCH_FENCE
+    post: BIRCH_LOG
+    top: LANTERN
+    light: LANTERN
+  - name: "暗黒オーク農園"
+    base: PODZOL
+    fence: DARK_OAK_FENCE
+    post: DARK_OAK_LOG
+    top: JACK_O_LANTERN
+    light: SOUL_LANTERN
+  - name: "かぼちゃ祭り"
+    base: HAY_BLOCK
+    fence: OAK_FENCE
+    post: OAK_LOG
+    top: CARVED_PUMPKIN
+    light: JACK_O_LANTERN
+  - name: "サバンナ牧場"
+    base: COARSE_DIRT
+    fence: ACACIA_FENCE
+    post: ACACIA_LOG
+    top: LANTERN
+    light: LANTERN
+  - name: "タイガ農園"
+    base: PODZOL
+    fence: SPRUCE_FENCE
+    post: SPRUCE_LOG
+    top: LANTERN
+    light: LANTERN
+  - name: "ジャングル農園"
+    base: MOSS_BLOCK
+    fence: JUNGLE_FENCE
+    post: JUNGLE_LOG
+    top: LANTERN
+    light: LANTERN
+  - name: "マングローブ湿地"
+    base: MUD
+    fence: MANGROVE_FENCE
+    post: MANGROVE_LOG
+    top: LANTERN
+    light: LANTERN
+  - name: "竹林ガーデン"
+    base: MOSS_BLOCK
+    fence: BAMBOO_FENCE
+    post: BAMBOO_BLOCK
+    top: LANTERN
+    light: LANTERN
+  - name: "収穫祭"
+    base: HAY_BLOCK
+    fence: OAK_FENCE
+    post: HAY_BLOCK
+    top: JACK_O_LANTERN
+    light: LANTERN
+  # NICOブランド色：ティール #1ab5ba ＋ イエロー #fbdb58。農場の雰囲気は干し草＋木の柵で。
+  - name: "ニコニコ"
+    base: HAY_BLOCK            # 黄系＋農場感（土台）
+    fence: OAK_FENCE           # 柵（マスト・農場感）
+    post: CYAN_CONCRETE        # ティール #1ab5ba（角の柱）
+    top: SEA_LANTERN           # ティール白の発光（柱の上）
+    light: GLOWSTONE           # 黄色の発光 #fbdb58（柵の上）
